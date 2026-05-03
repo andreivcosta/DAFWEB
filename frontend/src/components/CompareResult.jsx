@@ -63,9 +63,9 @@ export default function CompareResult({ result, onSendEmailNAF, onBack }) {
         </thead>
         <tbody>
           <tr>
-            <td className="label">Simples Nacional (6%)</td>
+            <td className="label">Simples Nacional (Anexo IV)</td>
             <td>—</td>
-            <td>R$ {PJ.simples6}</td>
+            <td>R$ {PJ.impostoMensal}</td>
           </tr>
           <tr>
             <td className="label">INSS</td>
