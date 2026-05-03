@@ -63,21 +63,18 @@ for (const f of SIMPLES_ANEXO_IV) {
   const impostoMensal = impostoAnual / 12;
   
   // Cálculo do pró-labore e INSS
-  const prolabore = faturamentoMensal * PROLABORE_PERCENTAGE;
-  const inss = prolabore * INSS_RATE;
-  
-  // Base de cálculo para IR (pró-labore - INSS)
-  const baseIR = prolabore - inss;
-  const irProlabore = calcIRPF(baseIR);
-  
-  const effectiveRate = (impostoMensal + inss + irProlabore.imposto) / (faturamentoMensal || 1);
+  const prolabore = 0;
+  const inss = 0;
+  const irProlabore = { imposto: 0, effectiveRate: 0, bracket: null };
+
+  const effectiveRate = impostoMensal / (faturamentoMensal || 1);
   
   return {
     impostoMensal: round2(impostoMensal),
     prolabore: round2(prolabore),
     inss: round2(inss),
     irProlabore: irProlabore,
-    totalImpostos: round2(impostoMensal + inss + irProlabore.imposto),
+    totalImpostos: round2(impostoMensal),
     effectiveRate: round2(effectiveRate),
     faixa
   };
