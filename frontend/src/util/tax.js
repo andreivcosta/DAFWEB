@@ -1,15 +1,24 @@
+//teste arthur morrer
 // IRPF mensal - exemplo baseado em tabelas progressivas (valor mensal)
 export const IRPF_BRACKETS = [
   { upTo: 2428.8, rate: 0, deduction: 0 }, // faixa de isenção (exemplo; atualize conforme necessário)
   { upTo: 2826.65, rate: 0.075, deduction: 182.16 },
   { upTo: 3751.05, rate: 0.15, deduction: 394.16},
-  { upTo: 4664.68, rate: 0.225, deduction: 67549 },
+  { upTo: 4664.68, rate: 0.225, deduction: 675.49 },
   { upTo: Infinity, rate: 0.275, deduction: 908.73 },
 ];
 
 //Calcular IRPF (mensal) — retorna imposto e alíquota efetiva
 export function calcIRPF(base) {
   if (base <= 0) return { imposto: 0, effectiveRate: 0, bracket: null };
+  if (base <= 5000) { 
+    return { 
+      imposto: 0, 
+      effectiveRate: 0, 
+      bracket: { rate: 0, label: "Isento 2026" } 
+    };
+  }
+  
 
   for (const b of IRPF_BRACKETS) {
     if (base <= b.upTo) {
@@ -77,11 +86,11 @@ export function calcSimples(faturamentoMensal, custosMensais) {
 Função principal que retorna o comparativo PF x PJ
 Input: rendaMensal (faturamento), custosMensais, profissao (string)
  */
-export function compareTaxes({ rendaMensal, custosMensais }) {
-  const irpf = calcIRPF(Math.max(0, rendaMensal - custosMensais));
-  const simples = calcSimples(rendaMensal, custosMensais);
-
+export function compareTaxes({ rendaMensal, custosMensais, pro }) {
   const inssPF = round2(rendaMensal * 0.11); // exemplo de INSS PF
+  const basePF = Math.max(0, rendaMensal - custosMensais - inssPF);
+  const irpf = calcIRPF(basePF);
+  const simples = calcSimples(rendaMensal, custosMensais);
   const liquidoPF = round2(rendaMensal - (irpf.imposto + inssPF));
   const liquidoPJ = round2(rendaMensal - simples.totalImpostos);
 

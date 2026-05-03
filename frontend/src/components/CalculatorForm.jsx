@@ -4,12 +4,12 @@ import InfoModal from "./InfoModal";
 export default function CalculatorForm({ onCompare }) {
   const [renda, setRenda] = useState("");
   const [custos, setCustos] = useState("");
-  const [profissao, setProfissao] = useState("Psicólogo(a)");
+  const [profissao, setProfissao] = useState("Psicólogo(a)", "Advogado(a)", "Arquiteto(a)");
   const [sendEmail, setSendEmail] = useState(false);
   const [emailUser, setEmailUser] = useState("");
   const [emailNAF, setEmailNAF] = useState("");
   const [errors, setErrors] = useState({});
-  const [showInfo, setShowInfo] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);  
 
   function validate() {
     const e = {};
@@ -45,7 +45,7 @@ export default function CalculatorForm({ onCompare }) {
     onCompare({
       rendaMensal: Number(renda),
       custosMensais: Number(custos),
-      profissao,
+      profissao: profissao,
       sendEmail,
       emailUser,
       emailNAF,
@@ -123,7 +123,9 @@ export default function CalculatorForm({ onCompare }) {
               value={profissao}
               onChange={(e) => setProfissao(e.target.value)}
             >
-              <option>Psicólogo(a)</option>
+              <option value="Psicólogo(a)">Psicólogo(a)</option>
+              <option value="Arquiteto(a)">Arquiteto(a)</option>
+              <option value="Advogado(a)">Advogado(a)</option>
             </select>
           </td>
         </tr>

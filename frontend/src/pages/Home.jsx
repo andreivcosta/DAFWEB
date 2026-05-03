@@ -12,8 +12,9 @@ export default function Home() {
 
   function handleCompare(data) {
     const comparison = compareTaxes({
-      rendaMensal: data.rendaMensal,
-      custosMensais: data.custosMensais,
+      rendaMensal: Number(data.rendaMensal),
+      custosMensais: Number(data.custosMensais),
+      profissao: data.profissao,
     });
     setResult({
       ...comparison,

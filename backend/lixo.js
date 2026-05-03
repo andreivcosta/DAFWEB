@@ -1,127 +1,219 @@
-// router.post("/send-test", async (req, res)=> {
-//     try {
-//         await sendEmail ({
-//             to: "luismatheus4002@gmail.com",
-//             subject: "Test Email",
-//             text: "This is a test email sent from the Express server.",
-//             html: "<h1>This is a test email sent from the Express server.</h1>"
-//         })
-//         res.status(200).json({ message: "Email enviado com sucesso." });
+// ================= IRPF =================
 
-//     } catch (error) {
-//         res.status(500).json({ message: "Erro ao enviar email." });
-//     }
-// });
-
-
-// IRPF mensal - exemplo baseado em tabelas progressivas (valor mensal)
 export const IRPF_BRACKETS = [
-  { upTo: 2428.8, rate: 0, deduction: 0 }, // faixa de isenção (exemplo; atualize conforme necessário)
+  { upTo: 2428.8, rate: 0, deduction: 0 },
   { upTo: 2826.65, rate: 0.075, deduction: 182.16 },
-  { upTo: 3751.05, rate: 0.15, deduction: 394.16},
-  { upTo: 4664.68, rate: 0.225, deduction: 67549 },
+  { upTo: 3751.05, rate: 0.15, deduction: 394.16 },
+  { upTo: 4664.68, rate: 0.225, deduction: 675.49 },
   { upTo: Infinity, rate: 0.275, deduction: 908.73 },
 ];
-
-//Calcular IRPF (mensal) — retorna imposto e alíquota efetiva
-export function calcIRPF(base) {
-  if (base <= 0) return { imposto: 0, effectiveRate: 0, bracket: null };
-
-  for (const b of IRPF_BRACKETS) {
-    if (base <= b.upTo) {
-      const imposto = Math.max(0, base * b.rate - b.deduction);
-      const effectiveRate = imposto / base;
-      return { imposto: round2(imposto), effectiveRate: round2(effectiveRate), bracket: b };
-    }
-  }
-  return { imposto: 0, effectiveRate: 0, bracket: null };
-}
 
 function round2(x) {
   return Math.round(x * 100) / 100;
 }
-// Simples Nacional - Anexo III
+
+export function calcIRPF(renda) {
+  if (renda <= 0) {
+    return { imposto: 0, effectiveRate: 0 };
+  }
+
+  const baseCalculo = Math.max(0, renda - 607.20);
+
+  let impostoBruto = 0;
+
+  for (const b of IRPF_BRACKETS) {
+    if (baseCalculo <= b.upTo) {
+      impostoBruto = Math.max(0, (baseCalculo * b.rate) - b.deduction);
+      break;
+    }
+  }
+
+  let impostoFinal = impostoBruto;
+
+  // regra do redutor
+  if (renda <= 5000) {
+    impostoFinal = 0;
+  } else if (renda <= 7350) {
+    const redutor = 978.62 - (0.133145 * renda);
+    impostoFinal = Math.max(0, impostoBruto - redutor);
+  }
+
+  return {
+    imposto: round2(impostoFinal),
+    effectiveRate: round2(impostoFinal / renda),
+  };
+}
+
+// ================= SIMPLES =================
+
 export const SIMPLES_ANEXO_III = [
   { upToAnnual: 180000, rate: 0.06, deduction: 0 },
   { upToAnnual: 360000, rate: 0.112, deduction: 9360 },
   { upToAnnual: 720000, rate: 0.135, deduction: 17640 },
   { upToAnnual: 1800000, rate: 0.16, deduction: 35640 },
   { upToAnnual: 3600000, rate: 0.21, deduction: 125640 },
-  { upToAnnual: 4800000, rate: 0.33, deduction: 648000 }
+  { upToAnnual: 4800000, rate: 0.33, deduction: 648000 },
 ];
 
-// Constantes para cálculos PJ
-const PROLABORE_PERCENTAGE = 0.28; // 28% da renda
-const INSS_RATE = 0.11; // 11% sobre pró-labore
+export const SIMPLES_ANEXO_IV = [
+  { upToAnnual: 180000, rate: 0.045, deduction: 0 },
+  { upToAnnual: 360000, rate: 0.09, deduction: 8100 },
+  { upToAnnual: 720000, rate: 0.102, deduction: 12420 },
+  { upToAnnual: 1800000, rate: 0.14, deduction: 39780 },
+  { upToAnnual: 4800000, rate: 0.22, deduction: 183780 },
+  { upToAnnual: 4800000, rate: 0.33, deduction: 828000 },
+];
 
-export function calcSimples(faturamentoMensal, custosMensais) {
+// ================= PROFISSÕES =================
+
+const PROFISSOES_CONFIG = {
+  "Psicólogo(a)": { anexo: "III" },
+  "Arquiteto(a)": { anexo: "III" },
+  "Advogado(a)": { anexo: "IV" },
+};
+
+const INSS_RATE = 0.11;
+
+// ================= SIMPLES BASE =================
+
+export function calcSimplesDinamico(faturamentoMensal, profissao) {
   const receitaAnual = faturamentoMensal * 12;
-  let faixa = SIMPLES_ANEXO_III[SIMPLES_ANEXO_III.length - 1];
-  for (const f of SIMPLES_ANEXO_III) {
+
+  const config = PROFISSOES_CONFIG[profissao] || { anexo: "III" };
+  const tabela =
+    config.anexo === "IV" ? SIMPLES_ANEXO_IV : SIMPLES_ANEXO_III;
+
+  let faixa = tabela[tabela.length - 1];
+
+  for (const f of tabela) {
     if (receitaAnual <= f.upToAnnual) {
       faixa = f;
       break;
     }
   }
-  
-  // Cálculo do Simples Nacional
-  const impostoAnual = Math.max(0, receitaAnual * faixa.rate - (faixa.deduction || 0));
-  const impostoMensal = impostoAnual / 12;
-  
-  // Cálculo do pró-labore e INSS
-  const prolabore = faturamentoMensal * PROLABORE_PERCENTAGE;
+
+  const impostoAnual = Math.max(
+    0,
+    receitaAnual * faixa.rate - (faixa.deduction || 0)
+  );
+
+  return {
+    impostoMensal: impostoAnual / 12,
+    anexo: config.anexo,
+  };
+}
+
+// ================= ANEXO III =================
+
+export function calcAnexoIII(faturamentoMensal, impostoMensal) {
+  const prolabore = faturamentoMensal * 0.28;
   const inss = prolabore * INSS_RATE;
-  
-  // Base de cálculo para IR (pró-labore - INSS)
+
   const baseIR = prolabore - inss;
   const irProlabore = calcIRPF(baseIR);
-  
-  const effectiveRate = (impostoMensal + inss + irProlabore.imposto) / (faturamentoMensal || 1);
-  
+
+  const total = impostoMensal + inss + irProlabore.imposto;
+
   return {
     impostoMensal: round2(impostoMensal),
     prolabore: round2(prolabore),
     inss: round2(inss),
-    irProlabore: irProlabore,
-    totalImpostos: round2(impostoMensal + inss + irProlabore.imposto),
-    effectiveRate: round2(effectiveRate),
-    faixa
+    irProlabore,
+    totalImpostos: round2(total),
+    effectiveRate: round2(total / faturamentoMensal),
   };
 }
 
-/**
-Função principal que retorna o comparativo PF x PJ
-Input: rendaMensal (faturamento), custosMensais, profissao (string)
- */
-export function compareTaxes({ rendaMensal, custosMensais }) {
+// ================= ANEXO IV (ADVOGADO) =================
+
+export function calcAnexoIV(faturamentoMensal, impostoMensal) {
+  const prolabore = Math.max(1621, faturamentoMensal * 0.28);
+
+  const inss = prolabore * INSS_RATE;
+  const cpp = prolabore * 0.2;
+
+  const baseIR = prolabore - inss;
+  const irProlabore = calcIRPF(baseIR);
+
+  const total =
+    impostoMensal + inss + cpp + irProlabore.imposto;
+
+  return {
+    impostoMensal: round2(impostoMensal),
+    prolabore: round2(prolabore),
+    inss: round2(inss),
+    cpp: round2(cpp),
+    irProlabore,
+    totalImpostos: round2(total),
+    effectiveRate: round2(total / faturamentoMensal),
+  };
+}
+
+// ================= FUNÇÃO PRINCIPAL =================
+
+export function compareTaxes({
+  rendaMensal,
+  custosMensais = 0,
+  profissao,
+}) {
+  // PF
   const basePF = Math.max(0, rendaMensal - custosMensais);
   const irpf = calcIRPF(basePF);
 
-  const simples = calcSimples(rendaMensal, custosMensais);
-
-  // Resultado final: liquido após imposto
   const liquidoPF = round2(rendaMensal - irpf.imposto);
-  const liquidoPJ = round2(rendaMensal - simples.totalImpostos);
+
+  // PJ
+  const simplesBase = calcSimplesDinamico(
+    rendaMensal,
+    profissao
+  );
+
+  let pj;
+
+  if (simplesBase.anexo === "IV") {
+    pj = calcAnexoIV(
+      rendaMensal,
+      simplesBase.impostoMensal
+    );
+  } else {
+    pj = calcAnexoIII(
+      rendaMensal,
+      simplesBase.impostoMensal
+    );
+  }
+
+  const liquidoPJ = round2(
+    rendaMensal - pj.totalImpostos
+  );
 
   return {
-    input: { rendaMensal, custosMensais },
+    input: { rendaMensal, custosMensais, profissao },
+
     PF: {
-      base: round2(basePF),
       imposto: irpf.imposto,
-      effectiveRate: irpf.effectiveRate,
       liquido: liquidoPF,
-      bracket: irpf.bracket
+      effectiveRate: irpf.effectiveRate,
     },
+
     PJ: {
-      faturamento: rendaMensal,
-      impostoMensal: simples.impostoMensal,
-      prolabore: simples.prolabore,
-      inss: simples.inss,
-      irProlabore: simples.irProlabore,
-      totalImpostos: simples.totalImpostos,
-      effectiveRate: simples.effectiveRate,
+      impostoMensal: pj.impostoMensal,
+      prolabore: pj.prolabore,
+      inss: pj.inss,
+      cpp: pj.cpp || 0,
+      irProlabore: pj.irProlabore.imposto,
+      totalImpostos: pj.totalImpostos,
       liquido: liquidoPJ,
-      faixa: simples.faixa
-    }
+      effectiveRate: pj.effectiveRate,
+    },
   };
 }
+
+// ================= TESTE =================
+
+console.log(
+  compareTaxes({
+    rendaMensal: 10000,
+    custosMensais: 0,
+    profissao: "Advogado(a)",
+  })
+);
