@@ -43,20 +43,58 @@ export const SIMPLES_ANEXO_IV = [
   { upToAnnual: 3600000, rate: 0.22, deduction: 183780 },
   { upToAnnual: 4800000, rate: 0.33, deduction: 828000 }
 ];
+// Simples Nacional - Anexo III
+// Usado para psicólogo e outras profissões de serviço
+export const SIMPLES_ANEXO_III = [
+  { upToAnnual: 180000, rate: 0.06, deduction: 0 },
+  { upToAnnual: 360000, rate: 0.112, deduction: 9360 },
+  { upToAnnual: 720000, rate: 0.135, deduction: 17640 },
+  { upToAnnual: 1800000, rate: 0.16, deduction: 35640 },
+  { upToAnnual: 3600000, rate: 0.21, deduction: 125640 },
+  { upToAnnual: 4800000, rate: 0.33, deduction: 648000 }
+];
 
-// Constantes para cálculos PJ
-const PROLABORE_PERCENTAGE = 0.28; // 28% da renda
-const INSS_RATE = 0.11; // 11% sobre pró-labore
-
-export function calcSimples(faturamentoMensal, custosMensais) {
+export function calcSimples(faturamentoMensal, custosMensais, profissao) {
   const receitaAnual = faturamentoMensal * 12;
-  let faixa = SIMPLES_ANEXO_IV[SIMPLES_ANEXO_IV.length - 1];
-for (const f of SIMPLES_ANEXO_IV) {
+
+  const profissaoFormatada = profissao?.toLowerCase() || "";
+
+  const tabelaSimples = profissaoFormatada.includes("advogado")
+    ? SIMPLES_ANEXO_IV
+    : SIMPLES_ANEXO_III;
+
+  let faixa = tabelaSimples[tabelaSimples.length - 1];
+
+  for (const f of tabelaSimples) {
     if (receitaAnual <= f.upToAnnual) {
       faixa = f;
       break;
     }
   }
+
+  const impostoAnual = Math.max(
+    0,
+    receitaAnual * faixa.rate - (faixa.deduction || 0)
+  );
+
+  const impostoMensal = impostoAnual / 12;
+
+  const prolabore = 0;
+  const inss = 0;
+  const irProlabore = { imposto: 0, effectiveRate: 0, bracket: null };
+
+  const effectiveRate = impostoMensal / (faturamentoMensal || 1);
+
+  return {
+    impostoMensal: round2(impostoMensal),
+    prolabore: round2(prolabore),
+    inss: round2(inss),
+    irProlabore: irProlabore,
+    totalImpostos: round2(impostoMensal),
+    effectiveRate: round2(effectiveRate),
+    faixa,
+  };
+}
   
   // Cálculo do Simples Nacional
   const impostoAnual = Math.max(0, receitaAnual * faixa.rate - (faixa.deduction || 0));
@@ -88,12 +126,9 @@ export function compareTaxes({ rendaMensal, custosMensais, pro }) {
   const inssPF = round2(rendaMensal * 0.11); // exemplo de INSS PF
   const basePF = Math.max(0, rendaMensal - custosMensais - inssPF);
   const irpf = calcIRPF(basePF);
-  const simples = calcSimples(rendaMensal, custosMensais);
+  const simples = calcSimples(rendaMensal, custosMensais, pro);
   const liquidoPF = round2(rendaMensal - (irpf.imposto + inssPF));
   const liquidoPJ = round2(rendaMensal - simples.totalImpostos);
-
-  // Simples Nacional 6% (valor mensal)
-  const simples6PJ = round2(rendaMensal * 0.06);
 
   return {
     input: { rendaMensal, custosMensais },
@@ -118,7 +153,6 @@ export function compareTaxes({ rendaMensal, custosMensais, pro }) {
       effectiveRate: simples.effectiveRate,
       liquido: liquidoPJ,
       faixa: simples.faixa,
-      simples6: simples6PJ,
     },
   };
 }
