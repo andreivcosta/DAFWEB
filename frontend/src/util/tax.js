@@ -33,14 +33,15 @@ export function calcIRPF(base) {
 function round2(x) {
   return Math.round(x * 100) / 100;
 }
-// Simples Nacional - Anexo III
-export const SIMPLES_ANEXO_III = [
-  { upToAnnual: 180000, rate: 0.06, deduction: 0 },
-  { upToAnnual: 360000, rate: 0.112, deduction: 9360 },
-  { upToAnnual: 720000, rate: 0.135, deduction: 17640 },
-  { upToAnnual: 1800000, rate: 0.16, deduction: 35640 },
-  { upToAnnual: 3600000, rate: 0.21, deduction: 125640 },
-  { upToAnnual: 4800000, rate: 0.33, deduction: 648000 }
+// Simples Nacional - Anexo IV
+// Usado para serviços advocatícios
+export const SIMPLES_ANEXO_IV = [
+  { upToAnnual: 180000, rate: 0.045, deduction: 0 },
+  { upToAnnual: 360000, rate: 0.09, deduction: 8100 },
+  { upToAnnual: 720000, rate: 0.102, deduction: 12420 },
+  { upToAnnual: 1800000, rate: 0.14, deduction: 39780 },
+  { upToAnnual: 3600000, rate: 0.22, deduction: 183780 },
+  { upToAnnual: 4800000, rate: 0.33, deduction: 828000 }
 ];
 
 // Constantes para cálculos PJ
@@ -49,8 +50,8 @@ const INSS_RATE = 0.11; // 11% sobre pró-labore
 
 export function calcSimples(faturamentoMensal, custosMensais) {
   const receitaAnual = faturamentoMensal * 12;
-  let faixa = SIMPLES_ANEXO_III[SIMPLES_ANEXO_III.length - 1];
-  for (const f of SIMPLES_ANEXO_III) {
+  let faixa = SIMPLES_ANEXO_IV[SIMPLES_ANEXO_IV.length - 1];
+for (const f of SIMPLES_ANEXO_IV) {
     if (receitaAnual <= f.upToAnnual) {
       faixa = f;
       break;
