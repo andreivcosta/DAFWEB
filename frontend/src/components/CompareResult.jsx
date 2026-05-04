@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import GraficoComparativo from "./GraficoComparativo";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function CompareResult({ result, onSendEmailNAF, onBack }) {
   const [sending, setSending] = useState(false);
@@ -41,8 +43,34 @@ export default function CompareResult({ result, onSendEmailNAF, onBack }) {
     setSending(false);
   }
 
+  function gerarPDF() {
+  const area = document.getElementById("area-pdf");
+  if (!area) return;
+
+  const elementos = document.querySelectorAll(".no-pdf");
+
+  // esconder
+  elementos.forEach(el => el.style.visibility = "hidden");
+// escoder os botões para não aparecer no pdf
+  setTimeout(() => {
+    html2canvas(area).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+
+      const largura = 180;
+      const altura = (canvas.height * largura) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 10, 10, largura, altura);
+      pdf.save("comparativo.pdf");
+
+      // mostrar de volta os botões
+      elementos.forEach(el => el.style.visibility = "visible");
+    });
+  }, 200); // delay de 200ms 
+}
+
   return (
-    <div className="card shadow-lg border-0 rounded-3 p-4">
+    <div id="area-pdf" className="card shadow-lg border-0 rounded-3 p-4">
       <h4 className="section-title">Resultado da Simulação</h4>
 
       {/* Informações de entrada */}
@@ -101,12 +129,18 @@ export default function CompareResult({ result, onSendEmailNAF, onBack }) {
       <GraficoComparativo PF={PF} PJ={PJ} />
       <hr />
 
-      <div className="d-flex justify-content-between mt-4">
+     <div className="d-flex justify-content-between mt-4 no-pdf">
         <button
           className="btn btn-secondary rounded-pill px-4"
           onClick={onBack}
         >
           Voltar
+        </button>
+        <button
+          className="btn btn-success rounded-pill px-4"
+          onClick={gerarPDF}
+        >
+          Baixar PDF
         </button>
         <button
           className="btn rounded-pill px-4"
