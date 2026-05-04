@@ -49,9 +49,8 @@ export default function CompareResult({ result, onSendEmailNAF, onBack }) {
 
   const elementos = document.querySelectorAll(".no-pdf");
 
-  // esconder
+  // esconder  os botões para não aparecer no pdf
   elementos.forEach(el => el.style.visibility = "hidden");
-// escoder os botões para não aparecer no pdf
   setTimeout(() => {
     html2canvas(area).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
