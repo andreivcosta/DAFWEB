@@ -95,17 +95,18 @@ export function calcSimples(faturamentoMensal, custosMensais, profissao) {
   };
 }
 
-export function compareTaxes({ rendaMensal, custosMensais, pro }) {
+export function compareTaxes({ rendaMensal, custosMensais, pro, profissao }) {
   const inssPF = round2(rendaMensal * 0.11);
   const basePF = Math.max(0, rendaMensal - custosMensais - inssPF);
   const irpf = calcIRPF(basePF);
-  const simples = calcSimples(rendaMensal, custosMensais, pro);
+  const profissaoSelecionada = pro || profissao;
+  const simples = calcSimples(rendaMensal, custosMensais, profissaoSelecionada);
 
   const liquidoPF = round2(rendaMensal - (irpf.imposto + inssPF));
   const liquidoPJ = round2(rendaMensal - simples.totalImpostos);
 
   return {
-    input: { rendaMensal, custosMensais, profissao: pro },
+    input: { rendaMensal, custosMensais, profissao: profissaoSelecionada },
     PF: {
       inss: inssPF,
       ir: irpf.imposto,
