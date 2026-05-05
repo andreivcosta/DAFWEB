@@ -31,12 +31,13 @@ Além disso, o sistema gera gráficos comparativos e possibilita enviar os resul
 - Gráfico comparativo PF × PJ.  
 - Botão de **Sair** que retorna para a tela de login.  
 - Envio dos resultados por e-mail para o NAF.  
+- Gerador de pdf 
 
 ---
 
 ## 📂 Estrutura principal (Frontend)
 - `src/components/CalculatorForm.jsx` → formulário de entrada.  
-- `src/components/CompareResult.jsx` → tabela e gráfico comparativo.  
+- `src/components/CompareResult.jsx` → tabela e gráfico comparativo e gerador de pdf.  
 - `src/components/GraficoComparativo.jsx` → gráfico com Chart.js.  
 - `src/pages/Home.jsx` → página principal com header e botão de sair.  
 - `src/util/tax.js` → funções de cálculo de impostos (PF e PJ).  
@@ -59,6 +60,7 @@ git clone https://github.com/lmatheus07/DAFWEB.git
 
 #### 2. Instalar dependências
 - npm install
+- npm install jspdf html2canvas (biblioteca do pdf)
 
 #### 3. Configurar variáveis de ambiente
 Copie o arquivo .env.example para .env e preencha seus valores:
