@@ -63,9 +63,9 @@ export function calcSimples(faturamentoMensal, custosMensais, profissao) {
   const receitaAnual = faturamentoMensal * 12;
   const profissaoFormatada = profissao?.toLowerCase() || "";
 
-  const tabelaSimples = profissaoFormatada.includes("advogado")
-    ? SIMPLES_ANEXO_IV
-    : SIMPLES_ANEXO_III;
+  const isAdvogado = profissaoFormatada.includes("advogado");
+
+  const tabelaSimples = isAdvogado ? SIMPLES_ANEXO_IV : SIMPLES_ANEXO_III;
 
   let faixa = tabelaSimples[tabelaSimples.length - 1];
 
@@ -83,20 +83,21 @@ export function calcSimples(faturamentoMensal, custosMensais, profissao) {
 
   const impostoMensal = impostoAnual / 12;
 
-  const prolabore = faturamentoMensal * 0.28;
+   const prolabore = faturamentoMensal * 0.28;
   const inss = prolabore * 0.11;
+  const cpp = isAdvogado ? prolabore * 0.20 : 0;
 
   const baseIR = prolabore - inss;
   const irProlabore = calcIRPF(baseIR);
 
-  const totalImpostos = impostoMensal + inss + irProlabore.imposto;
-
+  const totalImpostos = impostoMensal + inss + irProlabore.imposto + cpp;
   const effectiveRate = totalImpostos / (faturamentoMensal || 1);
-
+  
   return {
     impostoMensal: round2(impostoMensal),
     prolabore: round2(prolabore),
     inss: round2(inss),
+    cpp: round2(cpp),
     irProlabore,
     totalImpostos: round2(totalImpostos),
     effectiveRate: round2(effectiveRate),
