@@ -82,14 +82,23 @@ export function calcSimples(faturamentoMensal, custosMensais, profissao) {
   );
 
   const impostoMensal = impostoAnual / 12;
-  const effectiveRate = impostoMensal / (faturamentoMensal || 1);
+
+  const prolabore = faturamentoMensal * 0.28;
+  const inss = prolabore * 0.11;
+
+  const baseIR = prolabore - inss;
+  const irProlabore = calcIRPF(baseIR);
+
+  const totalImpostos = impostoMensal + inss + irProlabore.imposto;
+
+  const effectiveRate = totalImpostos / (faturamentoMensal || 1);
 
   return {
     impostoMensal: round2(impostoMensal),
-    prolabore: 0,
-    inss: 0,
-    irProlabore: { imposto: 0, effectiveRate: 0, bracket: null },
-    totalImpostos: round2(impostoMensal),
+    prolabore: round2(prolabore),
+    inss: round2(inss),
+    irProlabore,
+    totalImpostos: round2(totalImpostos),
     effectiveRate: round2(effectiveRate),
     faixa,
   };
