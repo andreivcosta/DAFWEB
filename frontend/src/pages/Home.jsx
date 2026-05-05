@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import CalculatorForm from "../components/CalculatorForm";
 import CompareResult from "../components/CompareResult";
 import { compareTaxes } from "../util/tax";
+import FAQ from "../components/FAQ";
 
 export default function Home() {
   const [result, setResult] = useState(null);
@@ -40,26 +41,41 @@ export default function Home() {
     >
       {/* Header com botão de sair */}
       <div
-        className="header mb-4 d-flex justify-content-between align-items-center"
-        style={{
-          background: "linear-gradient(135deg, #6a5acd, #a6b1ff)",
-          marginLeft: "-12px",
-          marginRight: "-10px",
-          padding: "25px",
-          color: "white",
+      className="header mb-4 d-flex align-items-center"
+      style={{
+        background: "linear-gradient(135deg, #6a5acd, #a6b1ff)",
+        marginLeft: "-12px",
+        marginRight: "-10px",
+        padding: "25px",
+        color: "white",
         }}
-      >
-        <div>
-          <h1 className="fw-bold mb-0">Calculadora Tributária</h1>
-          <p className="mb-0">Compare PF vs PJ de forma simples</p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="btn btn-light fw-bold rounded-pill px-4"
-        >
-          Sair
-        </button>
-      </div>
+>
+  {/* esquerda do topo */}
+  <div style={{ flex: 1 }}>
+    <h1 className="fw-bold mb-0">Calculadora Tributária</h1>
+    <p className="mb-0">Compare PF vs PJ de forma simples</p>
+  </div>
+
+ {/* centralizar o faq */}
+  <div style={{ flex: 1, textAlign: "center" }}>
+    <a
+      href="#faq"
+      className="btn btn-light fw-bold rounded-pill px-4"
+    >
+      PERGUNTAS FREQUENTES
+    </a>
+  </div>
+
+  {/* DIREITA do topo */}
+  <div style={{ flex: 1, textAlign: "right" }}>
+    <button
+      onClick={handleLogout}
+      className="btn btn-light fw-bold rounded-pill px-4"
+    >
+      Sair
+    </button>
+  </div>
+</div>
 
       <div className="container">
         <div>
@@ -72,6 +88,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <FAQ />
     </div>
   );
 }
