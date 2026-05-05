@@ -121,6 +121,7 @@ export function compareTaxes({ rendaMensal, custosMensais, pro, profissao }) {
       impostoMensal: simples.impostoMensal,
       prolabore: simples.prolabore,
       inss: simples.inss,
+      cpp: simples.cpp,
       irProlabore: simples.irProlabore,
       ir: simples.irProlabore.imposto,
       isentoIR: simples.irProlabore.imposto === 0,
