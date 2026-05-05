@@ -44,42 +44,39 @@ export default function CompareResult({ result, onSendEmailNAF, onBack }) {
   }
 
   function gerarPDF() {
-  const area = document.getElementById("area-pdf");
-  if (!area) return;
+    const area = document.getElementById("area-pdf");
+    if (!area) return;
 
-  const elementos = document.querySelectorAll(".no-pdf");
+    const elementos = document.querySelectorAll(".no-pdf");
 
-  // esconder  os botões para não aparecer no pdf
-  elementos.forEach(el => el.style.visibility = "hidden");
-  setTimeout(() => {
-    html2canvas(area).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
+    elementos.forEach(el => el.style.visibility = "hidden");
 
-      const largura = 180;
-      const altura = (canvas.height * largura) / canvas.width;
+    setTimeout(() => {
+      html2canvas(area).then((canvas) => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jsPDF("p", "mm", "a4");
 
-      pdf.addImage(imgData, "PNG", 10, 10, largura, altura);
-      pdf.save("comparativo.pdf");
+        const largura = 180;
+        const altura = (canvas.height * largura) / canvas.width;
 
-      // mostrar de volta os botões
-      elementos.forEach(el => el.style.visibility = "visible");
-    });
-  }, 200); // delay de 200ms 
-}
+        pdf.addImage(imgData, "PNG", 10, 10, largura, altura);
+        pdf.save("comparativo.pdf");
+
+        elementos.forEach(el => el.style.visibility = "visible");
+      });
+    }, 200);
+  }
 
   return (
     <div id="area-pdf" className="card shadow-lg border-0 rounded-3 p-4">
       <h4 className="section-title">Resultado da Simulação</h4>
 
-      {/* Informações de entrada */}
       <div className="mb-3">
         <p><strong>Profissão:</strong> {input.profissao}</p>
         <p><strong>Renda informada:</strong> R$ {input.rendaMensal}</p>
         <p><strong>Custos mensais:</strong> R$ {input.custosMensais}</p>
       </div>
 
-      {/* Tabela detalhada */}
       <table className="table table-hover align-middle">
         <thead style={{ backgroundColor: "#a6b1ff", color: "white" }}>
           <tr>
@@ -90,25 +87,35 @@ export default function CompareResult({ result, onSendEmailNAF, onBack }) {
         </thead>
         <tbody>
           <tr>
-            <td className="label">Simples Nacional (Anexo IV)</td>
+            <td className="label">Simples Nacional</td>
             <td>—</td>
             <td>R$ {PJ.impostoMensal}</td>
           </tr>
+
           <tr>
             <td className="label">INSS</td>
             <td>R$ {PF.inss}</td>
             <td>R$ {PJ.inss}</td>
           </tr>
+
+          <tr>
+            <td className="label">CPP</td>
+            <td>—</td>
+            <td>R$ {PJ.cpp || 0}</td>
+          </tr>
+
           <tr>
             <td className="label">Imposto de Renda</td>
             <td>{PF.isentoIR ? "Isento" : `R$ ${PF.ir}`}</td>
             <td>{PJ.isentoIR ? "Isento" : `R$ ${PJ.ir}`}</td>
           </tr>
+
           <tr>
             <td className="label">Total de Impostos</td>
             <td>R$ {PF.imposto}</td>
             <td>R$ {PJ.totalImpostos}</td>
           </tr>
+
           <tr>
             <td className="label">Renda Líquida</td>
             <td>R$ {PF.liquido}</td>
@@ -128,19 +135,15 @@ export default function CompareResult({ result, onSendEmailNAF, onBack }) {
       <GraficoComparativo PF={PF} PJ={PJ} />
       <hr />
 
-     <div className="d-flex justify-content-between mt-4 no-pdf">
-        <button
-          className="btn btn-secondary rounded-pill px-4"
-          onClick={onBack}
-        >
+      <div className="d-flex justify-content-between mt-4 no-pdf">
+        <button className="btn btn-secondary rounded-pill px-4" onClick={onBack}>
           Voltar
         </button>
-        <button
-          className="btn btn-success rounded-pill px-4"
-          onClick={gerarPDF}
-        >
+
+        <button className="btn btn-success rounded-pill px-4" onClick={gerarPDF}>
           Baixar PDF
         </button>
+
         <button
           className="btn rounded-pill px-4"
           style={{ backgroundColor: "#6a5acd", color: "white" }}
